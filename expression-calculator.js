@@ -1,4 +1,4 @@
-function run(str){
+module.exports = function(str){
 	let list = split(str);
 	return calc(list);
 }
@@ -12,7 +12,7 @@ function calc(args){
 			case "/": return (parseFloat(args[0]) / parseFloat(args[2])).toString();
 		}	
 	}
-	console.log("  "+args.join(" "));
+
 	//計括號
 	let l = -1;
 	for(let i=0; i<args.length; i++){
@@ -21,7 +21,6 @@ function calc(args){
 		}
 		else if(args[i]===")"){
 			args.splice(l, i-l+1, calc(args.slice(l+1, i)));
-			console.log("= "+args.join(" "));
 			i = -1;
 			l = -1;
 		}		
@@ -31,7 +30,6 @@ function calc(args){
 	for(let i=0; i<args.length; i++){
 		if(/^[*/]$/.test(args[i])){
 			args.splice(i-1, 3, calc(args.slice(i-1, i+2)));
-			console.log("= "+args.join(" "));
 			i=-1;
 		}
 	}
@@ -40,7 +38,6 @@ function calc(args){
 	for(let i=0; i<args.length; i++){
 		if(/^[+-]$/.test(args[i])){
 			args.splice(i-1, 3, calc(args.slice(i-1, i+2)));
-			console.log("= "+args.join(" "));
 			i=-1;
 		}
 	}
@@ -80,5 +77,3 @@ function split(str){
 function isDigit(arg){
 	return /^[0123456789.]+$/.test(arg);
 }
-
-console.log(run("1+2*3/4+((5-6)*(7/8))*9/10"));
