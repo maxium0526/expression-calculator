@@ -1,5 +1,9 @@
 module.exports = function(str){
 	let list = split(str);
+	// console.log(list.join(" "));
+	list = normalize(list);
+	// console.log(list.join(" "));
+	validate(list);
 	return calc(list);
 }
 
@@ -21,11 +25,12 @@ function calc(args){
 		}
 		else if(args[i]===")"){
 			args.splice(l, i-l+1, calc(args.slice(l+1, i)));
+			args = normalize(args);
 			i = -1;
 			l = -1;
 		}		
 	}
-
+	args = normalize(args);
 	//計乘除
 	for(let i=0; i<args.length; i++){
 		if(/^[*/]$/.test(args[i])){
@@ -57,16 +62,14 @@ function split(str){
 	// let isDigit = isDigit(buffer);  //buffer是否為字母
 
 	for(let i=1; i<form.length; i++){
-		if(isDigit(form[i]) && isDigit(buffer)){ //若下一個字為數字且buffer為數字, 放進buffer
+		if(isDigit(form[i]) && isNumber(buffer)){ //若下一個字為數字且buffer為數字, 放進buffer
 			buffer += form[i];
-		} else if(isDigit(form[i]) && !isDigit(buffer)){
+		} else if(isDigit(form[i]) && !isNumber(buffer)){
 			ope.push(buffer);
 			buffer = form[i];
-			// isDigit = true;
 		} else if(!isDigit(form[i])){
 			ope.push(buffer);
 			buffer = form[i];
-			// isDigit = false;
 		}
 	}
 	ope.push(buffer);
@@ -75,5 +78,60 @@ function split(str){
 }
 
 function isDigit(arg){
-	return /^[0123456789.]+$/.test(arg);
+	return /^[0123456789.]$/.test(arg);
+}
+
+function isNumber(arg){
+	return /^\-*[0123456789.]+$/.test(arg);
+}
+
+function isSymbol(arg){
+	return /^[+\-*/()]$/.test(arg);
+}
+
+function isOperator(arg){
+	return /^[+\-*/]$/.test(arg);
+}
+
+function isBracket(arg){
+	return /^[()]$/.test(arg);
+}
+
+function normalize(arr){
+	let result = arr.slice();
+	for(let i=0; i<result.length;i++){
+		if((isOperator(result[i-1])||!result[i-1]) && result[i]==="-" && isNumber(result[i+1])){//7*-16, -(9+7)
+			if(result[i+1][0]==="-"){
+				result[i+1] = result[i+1].substring(1);
+			} else {
+				result[i+1] = "-" + result[i+1];
+			}
+			result.splice(i,1);
+			i--;
+		}
+		if(isNumber(arr[i]) && arr[i+1]==="("){//16(7+4)
+			result.splice(i+1,0,"*");
+		}
+		if(arr[i]===")" && isNumber(arr[i+1])){//(7+4)16
+			result.splice(i+1,0,"*");
+		}
+		if(arr[i]===")" && arr[i+1]==="("){//(7+4)(7+9)
+			result.splice(i+1,0,"*");
+		}
+	}
+	return result;
+}
+
+function validate(arr){
+	for(let i=0;i<arr.length;i++){
+		if(isOperator(arr[i]) && isOperator(arr[i+1]) && (arr[i+1]!="-" && arr[i+2]!="(")){
+			throw "Invalid Expression at :"+i+", more than 1 operator.";
+			return false;
+		}
+		if(isDigit(arr[i]) && isDigit(arr[i+1])){
+			throw "Invalid Expression at :"+i+", more than 1 number.";
+			return false;
+		}
+	}
+	return true;
 }
