@@ -51,7 +51,8 @@ function calc(args){
 		return args[0];
 	}
 
-	return calc(args);
+	throw "Calculate error occured, x" + args.length;
+	return null;
 }
 
 function split(str){
@@ -123,6 +124,8 @@ function normalize(arr){
 }
 
 function validate(arr){
+	let numBrackets = 0;
+
 	for(let i=0;i<arr.length;i++){
 		if(isOperator(arr[i]) && isOperator(arr[i+1]) && (arr[i+1]!="-" && arr[i+2]!="(")){
 			throw "Invalid Expression at :"+i+", more than 1 operator.";
@@ -132,6 +135,17 @@ function validate(arr){
 			throw "Invalid Expression at :"+i+", more than 1 number.";
 			return false;
 		}
+		if(arr[i]==="(") numBrackets++;
+		if(arr[i]===")") numBrackets--;
+		if(numBrackets<0){
+			throw 'Invalid Expression at :'+i+', unexpected ")" token.';
+			return false;
+		}
 	}
+	if(numBrackets!=0){
+			throw 'Invalid Expression. Not equal numbers of "(" and ")".';
+			return false;
+		}
+
 	return true;
 }
